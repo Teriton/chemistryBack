@@ -7,7 +7,7 @@ import (
 
 func main() {
 
-	articleReader := articlereader.NewDirReader("articles/main")
+	articleReader := articlereader.NewDirReader("articles")
 	app := app.NewApp(articleReader, ":8080")
 	app.Run()
 }

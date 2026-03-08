@@ -1,12 +1,20 @@
 package articlereader
 
 import (
+	"fmt"
 	"testing"
 )
 
+func createArticle() Article {
+	title := "test"
+	content := "content of test page"
+	article := Article{title, content}
+	return article
+}
+
 func TestArticle(t *testing.T) {
-	title := "Test"
-	content := "Content of test page"
+	title := "test"
+	content := "content of test page"
 	article := Article{title, content}
 	if article.Title() != title {
 		t.Errorf("Title from an article: %s, not equal to %s", article.Title(), title)
@@ -14,4 +22,12 @@ func TestArticle(t *testing.T) {
 	if article.Content() != content {
 		t.Errorf("Title from an content: %s, not equal to %s", article.Content(), content)
 	}
+}
+
+func TestJsonEncodeArticle(t *testing.T) {
+	article := createArticle()
+	jsonByte, err := article.MarshalJSON()
+	check(err, t)
+	jsonString := string(jsonByte)
+	fmt.Println(jsonString)
 }

@@ -53,7 +53,7 @@ func readInternalDir(dir string) Chapter {
 	for _, file := range files {
 		if file.Type().IsDir() {
 			currentChapter.articleObjects = append(currentChapter.articleObjects, readInternalDir(dir+"/"+file.Name()))
-			break
+			continue
 		}
 		article, err := artticleFromFile(dir + "/" + file.Name())
 		if err != nil {
