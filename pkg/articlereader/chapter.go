@@ -1,6 +1,9 @@
 package articlereader
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type Chapter struct {
 	title          string
@@ -30,4 +33,14 @@ func printChapter(c Chapter) {
 
 func (c Chapter) PrintChapter() {
 	printChapter(c)
+}
+func (c Chapter) MarshalJSON() ([]byte, error) {
+	type Alias Chapter
+	return json.Marshal(&struct {
+		Title    string          `json:"title"`
+		Articles []ArticleObject `json:"articles,omitempty"`
+	}{
+		Title:    c.title,
+		Articles: c.articleObjects,
+	})
 }

@@ -16,9 +16,9 @@ type DirReader struct {
 	rootChapter Chapter
 }
 
-func NewDirReader(dir string) (*DirReader, error) {
+func NewDirReader(dir string) *DirReader {
 	dirReader := DirReader{dir, readInternalDir(dir)}
-	return &dirReader, nil
+	return &dirReader
 }
 
 func getArticleTitleFromPath(path string) string {
@@ -64,6 +64,6 @@ func readInternalDir(dir string) Chapter {
 	return currentChapter
 }
 
-func (dr *DirReader) GetRootChapter() Chapter {
-	return dr.rootChapter
+func (dr DirReader) GetRootChapter() (Chapter, error) {
+	return dr.rootChapter, nil
 }

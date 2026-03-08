@@ -1,5 +1,7 @@
 package articlereader
 
+import "encoding/json"
+
 type ArticleObject interface {
 	Title() string
 }
@@ -17,6 +19,14 @@ func (a *Article) Content() string {
 	return a.content
 }
 
-func NewArticle(title string, content string) (*Article, error) {
-	return &Article{title: title, content: content}, nil
+func (a Article) MarshalJSON() ([]byte, error) {
+	type Alias struct {
+		Title   string `json:"title"`
+		Content string `json:"content"`
+	}
+
+	return json.Marshal(&Alias{
+		Title:   a.title,
+		Content: a.content,
+	})
 }

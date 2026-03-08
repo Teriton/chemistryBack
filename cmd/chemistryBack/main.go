@@ -1,17 +1,13 @@
 package main
 
 import (
-	"log"
-	"net/http"
-
-	"github.com/Teriton/chemistryBack/pkg/routes"
+	"github.com/Teriton/chemistryBack/internal/app"
+	"github.com/Teriton/chemistryBack/pkg/articlereader"
 )
 
 func main() {
-	mux := routes.MakeChemistryMux()
 
-	err := http.ListenAndServe(":8080", mux)
-	if err != nil {
-		log.Fatal(err)
-	}
+	articleReader := articlereader.NewDirReader("articles/main")
+	app := app.NewApp(articleReader, ":8080")
+	app.Run()
 }

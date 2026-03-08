@@ -1,7 +1,6 @@
 package articlereader
 
 import (
-	"errors"
 	"testing"
 )
 
@@ -10,13 +9,9 @@ func check(err error, t *testing.T) {
 		t.Error(err)
 	}
 }
-
-func newDirReaderForTest() (*DirReader, error) {
-	dirReader, err := NewDirReader("../../articles/test")
-	if err != nil {
-		return nil, errors.New("Can't create new DirReader")
-	}
-	return dirReader, nil
+func newDirReaderForTest() *DirReader {
+	dirReader := NewDirReader("../../articles/test")
+	return dirReader
 }
 
 func TestArticleFromFile(t *testing.T) {
@@ -28,9 +23,8 @@ func TestArticleFromFile(t *testing.T) {
 }
 
 func TestGetRootChapter(t *testing.T) {
-	dirReader, err := newDirReaderForTest()
-	check(err, t)
-	chapter := dirReader.GetRootChapter()
+	dirReader := newDirReaderForTest()
+	chapter, err := dirReader.GetRootChapter()
 	check(err, t)
 	if len(chapter.articleObjects) == 0 {
 		t.Error("There are no articles")
