@@ -1,3 +1,3 @@
-module github.com/chemistryBack
+module github.com/Teriton/chemistryBack
 
 go 1.25.7
