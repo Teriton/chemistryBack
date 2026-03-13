@@ -2,7 +2,9 @@ package articlereader
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"strings"
 )
 
 type Chapter struct {
@@ -43,4 +45,34 @@ func (c Chapter) MarshalJSON() ([]byte, error) {
 		Title:    c.title,
 		Articles: c.articleObjects,
 	})
+}
+
+func getArticle(articleToFind []string, c Chapter) (Article, error) {
+	for _, articleObject := range c.articleObjects {
+		article, ok := articleObject.(Article)
+		if ok && len(articleToFind) == 1 && article.title == articleToFind[0] {
+			return article, nil
+		}
+		if chapter, ok := articleObject.(Chapter); ok && chapter.title == articleToFind[0] {
+			if len(articleToFind) == 1 {
+				return Article{title: chapter.title, content: "CHAPTER"}, nil
+			} else {
+				article, err := getArticle(articleToFind[1:], chapter)
+				if err != nil {
+					return Article{}, err
+				}
+				return article, nil
+			}
+		}
+	}
+	return Article{}, errors.New("can't finde article")
+}
+
+func (c Chapter) GetArticle(path string) (Article, error) {
+	splitPath := strings.Split(path, "/")
+	article, err := getArticle(splitPath, c)
+	if err != nil {
+		return Article{}, err
+	}
+	return article, nil
 }

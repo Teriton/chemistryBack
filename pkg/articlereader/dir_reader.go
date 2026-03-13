@@ -9,6 +9,7 @@ import (
 
 type ArticleReader interface {
 	GetRootChapter() (Chapter, error)
+	GetArticle(string) (Article, error)
 }
 
 type DirReader struct {
@@ -66,4 +67,12 @@ func readInternalDir(dir string) Chapter {
 
 func (dr DirReader) GetRootChapter() (Chapter, error) {
 	return dr.rootChapter, nil
+}
+
+func (dr DirReader) GetArticle(path string) (Article, error) {
+	article, err := dr.rootChapter.GetArticle(path)
+	if err != nil {
+		return Article{}, err
+	}
+	return article, nil
 }

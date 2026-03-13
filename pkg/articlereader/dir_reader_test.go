@@ -1,6 +1,7 @@
 package articlereader
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -31,4 +32,22 @@ func TestGetRootChapter(t *testing.T) {
 		t.Skip()
 	}
 	chapter.PrintChapter()
+}
+
+func TestGetArticle(t *testing.T) {
+	dirReader := newDirReaderForTest()
+	expectedTitle := "TestArticle2"
+	expectedContent := "#ARTICLE WITH somE TEST\n"
+
+	article, err := dirReader.GetArticle("TestPage2/TestArticle2")
+	if err != nil {
+		t.Error(err)
+	}
+	if article.title != expectedTitle {
+		t.Errorf("%s doest match expected %s", article.title, expectedTitle)
+	}
+	if article.content != expectedContent {
+		t.Errorf("%s doest match expected %s", article.content, expectedContent)
+	}
+	fmt.Printf("Title: %s\nContent:%s\n", article.title, article.content)
 }
