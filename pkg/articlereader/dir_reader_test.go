@@ -37,7 +37,7 @@ func TestGetRootChapter(t *testing.T) {
 func TestGetArticle(t *testing.T) {
 	dirReader := newDirReaderForTest()
 	expectedTitle := "TestArticle2"
-	expectedContent := "#ARTICLE WITH somE TEST\n"
+	expectedContent := "# ARTICLE WITH somE TEST\n"
 
 	article, err := dirReader.GetArticle("TestPage2/TestArticle2")
 	if err != nil {

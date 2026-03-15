@@ -42,7 +42,7 @@ func (h *ArticlesHandler) GetArticle(w http.ResponseWriter, r *http.Request) {
 		w.Write(jsonString)
 		return
 	}
-	jsonString, err := article.MarshalJSON()
+	jsonString, err := article.MarshalJSONWithContent()
 	if err != nil {
 		log.Fatal(err)
 	}

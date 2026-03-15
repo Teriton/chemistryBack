@@ -20,7 +20,7 @@ func NewApp(articlereader articlereader.ArticleReader, addr string) *App {
 	articleHandler := handler.NewArticlesHandler(articlereader)
 
 	mux.HandleFunc("GET /articles/list", articleHandler.ListArticles)
-	mux.HandleFunc("/articles/byPath/{path...}", articleHandler.GetArticle)
+	mux.HandleFunc("GET /articles/byPath/{path...}", articleHandler.GetArticle)
 
 	server := &http.Server{
 		Addr:    addr,

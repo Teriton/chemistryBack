@@ -19,7 +19,7 @@ func (a *Article) Content() string {
 	return a.content
 }
 
-func (a Article) MarshalJSON() ([]byte, error) {
+func (a Article) MarshalJSONWithContent() ([]byte, error) {
 	type Alias struct {
 		Title   string `json:"title"`
 		Content string `json:"content"`
@@ -28,5 +28,15 @@ func (a Article) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&Alias{
 		Title:   a.title,
 		Content: a.content,
+	})
+}
+
+func (a Article) MarshalJSON() ([]byte, error) {
+	type Alias struct {
+		Title string `json:"title"`
+	}
+
+	return json.Marshal(&Alias{
+		Title: a.title,
 	})
 }

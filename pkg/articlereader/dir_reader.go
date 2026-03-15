@@ -24,7 +24,7 @@ func NewDirReader(dir string) *DirReader {
 
 func getArticleTitleFromPath(path string) string {
 	splitedPath := strings.Split(path, "/")
-	return strings.Split(splitedPath[len(splitedPath)-1], ".")[0]
+	return strings.Split(splitedPath[len(splitedPath)-1], ".md")[0]
 }
 
 func artticleFromFile(filePath string) (Article, error) {

@@ -31,3 +31,11 @@ func TestJsonEncodeArticle(t *testing.T) {
 	jsonString := string(jsonByte)
 	fmt.Println(jsonString)
 }
+
+func TestJsonEncodeArticleWithContext(t *testing.T) {
+	article := createArticle()
+	jsonByte, err := article.MarshalJSONWithContent()
+	check(err, t)
+	jsonString := string(jsonByte)
+	fmt.Println(jsonString)
+}
