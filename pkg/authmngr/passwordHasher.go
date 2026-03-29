@@ -4,7 +4,7 @@ import "golang.org/x/crypto/bcrypt"
 
 type Hasher interface {
 	encode([]byte) ([]byte, error)
-	check(hashedPassword []byte, password []byte) bool
+	check(hashedPassword []byte, rawPassword []byte) bool
 }
 
 type PasswordHasher struct {
@@ -22,7 +22,7 @@ func (ph PasswordHasher) encode(rawPassword []byte) ([]byte, error) {
 	return hashedPassword, nil
 }
 
-func (ph PasswordHasher) check(hashedPassword []byte, password []byte) bool {
-	err := bcrypt.CompareHashAndPassword(hashedPassword, []byte(password))
+func (ph PasswordHasher) check(hashedPassword []byte, rawPassword []byte) bool {
+	err := bcrypt.CompareHashAndPassword(hashedPassword, []byte(rawPassword))
 	return err == nil
 }

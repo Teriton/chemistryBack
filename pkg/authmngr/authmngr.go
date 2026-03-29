@@ -13,8 +13,9 @@ import (
 )
 
 type AuthorizationMngr interface {
-	login(username string, password string) (string, error) // Returns JWT token
-	signup(models.AddUser) (bool, error)
+	Login(username string, password string) (string, error) // Returns JWT token
+	Signup(models.AddUser) (string, error)                  // Returns JWT token
+
 }
 
 type AuthenticationMngr interface {
@@ -30,7 +31,20 @@ func NewAuthMngr(dbrepo dbrepo.DBRepo, pswHaser Hasher) (*Mngr, error) {
 	return &Mngr{dbrepo, pswHaser}, nil
 }
 
-func (m Mngr) login(username string, password string) (string, error) {
+func generateJWT(username string) (string, error) {
+	key := os.Getenv("JWT_SECRET_TOKEN")
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"username": username,
+		"exp":      time.Now().Add(time.Hour * 1).Unix(),
+	})
+	signed, err := token.SignedString([]byte(key))
+	if err != nil {
+		return "", err
+	}
+	return signed, nil
+}
+
+func (m Mngr) Login(username string, password string) (string, error) {
 	user, err := m.dbrepo.GetUserByUserName(username)
 	if err != nil {
 		return "", err
@@ -38,19 +52,27 @@ func (m Mngr) login(username string, password string) (string, error) {
 	if !m.pswHasher.check([]byte(user.Password), []byte(password)) {
 		return "", errors.New("incorect password")
 	}
-	key := os.Getenv("JWT_SECRET_TOKEN")
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"username": user.Username,
-		"exp":      time.Now().Add(time.Hour * 1).Unix(),
-	})
-	signed, err := token.SignedString([]byte(key))
+	token, err := generateJWT(user.Username)
 	if err != nil {
 		return "", err
 	}
 
-	return signed, nil
+	return token, nil
 }
 
-func (m Mngr) signup(models.AddUser) (bool, error) {
-	return false, nil
+func (m Mngr) Signup(userToAdd models.AddUser) (string, error) {
+	hashedPassword, err := m.pswHasher.encode([]byte(userToAdd.Password))
+	if err != nil {
+		return "", nil
+	}
+	userToAdd.Password = string(hashedPassword)
+	err = m.dbrepo.CreateUser(userToAdd)
+	if err != nil {
+		return "", err
+	}
+	token, err := generateJWT(userToAdd.Username)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }
