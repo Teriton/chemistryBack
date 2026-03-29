@@ -24,24 +24,16 @@ func NewAuthHandler(authMngr authmngr.AuthorizationMngr) (*AuthHandler, error) {
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		errorMessageJSON := errorMessage(err)
-		w.Write(errorMessageJSON)
+	if checkError(w, err, http.StatusForbidden) {
 		return
 	}
 	var loginData LoginDataRequst
 	err = json.Unmarshal(body, &loginData)
-	if err != nil {
-		errorMessageJSON := errorMessage(err)
-		w.WriteHeader(http.StatusForbidden)
-		w.Write(errorMessageJSON)
+	if checkError(w, err, http.StatusForbidden) {
 		return
 	}
 	jwt, err := h.authMngr.Login(loginData.Login, loginData.Password)
-	if err != nil {
-		errorMessageJSON := errorMessage(err)
-		w.WriteHeader(http.StatusForbidden)
-		w.Write(errorMessageJSON)
+	if checkError(w, err, http.StatusForbidden) {
 		return
 	}
 	cookie := http.Cookie{
