@@ -33,7 +33,7 @@ func TestCreateUserAndDelteUser(t *testing.T) {
 	dbRepo := CreatePsql(t)
 	defer dbRepo.CloseDB()
 
-	userToAdd := models.AddUser{Email: "sosi@gmail.com", Password: "12345", Username: "Shpack"}
+	userToAdd := models.AddUser{Email: "sosi@gmail.com", Password: "12345", Username: "Shpachok"}
 	err := dbRepo.CreateUser(userToAdd)
 	check(err, t)
 	err = dbRepo.DeleteUserByUserName(userToAdd.Username)

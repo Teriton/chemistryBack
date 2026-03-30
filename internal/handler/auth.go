@@ -2,10 +2,10 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
+	"github.com/Teriton/chemistryBack/internal/models"
 	"github.com/Teriton/chemistryBack/pkg/authmngr"
 )
 
@@ -50,19 +50,30 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Signup")
 	body, err := io.ReadAll(r.Body)
-	var tempUser struct {
-		Username string `json:"username"`
+	if checkError(w, err, http.StatusBadRequest) {
+		return
 	}
-	if err != nil {
-		fmt.Println(err)
+	var signupData models.AddUser
+	err = json.Unmarshal(body, &signupData)
+	if checkError(w, err, http.StatusBadRequest) {
+		return
 	}
-	err = json.Unmarshal(body, &tempUser)
-	if err != nil {
-		fmt.Println(err)
+	jwt, err := h.authMngr.Signup(signupData)
+	if checkError(w, err, http.StatusForbidden) {
+		return
 	}
-	fmt.Printf("Raw: %s\nResult: %#v ", body, tempUser)
+	cookie := http.Cookie{
+		Name:     "token",
+		Value:    jwt,
+		Path:     "/",
+		MaxAge:   3600,
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	}
+	http.SetCookie(w, &cookie)
+	w.WriteHeader(http.StatusAccepted)
 }
 
 //func (h *AuthHandler) signupTest(w http.ResponseWriter, r *http.Request) {

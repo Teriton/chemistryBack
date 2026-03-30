@@ -18,6 +18,18 @@ type AuthorizationMngr interface {
 
 }
 
+func checkSignupData(user models.AddUser) error {
+	switch {
+	case user.Username == "":
+		return errors.New("incorrect username")
+	case len(user.Password) < 4:
+		return errors.New("password must be at least 4 characters")
+	case user.Email == "":
+		return errors.New("incorrect email")
+	}
+	return nil
+}
+
 type AuthenticationMngr interface {
 	verify(jwt string) (models.User, error)
 }
@@ -61,6 +73,10 @@ func (m Mngr) Login(username string, password string) (string, error) {
 }
 
 func (m Mngr) Signup(userToAdd models.AddUser) (string, error) {
+	err := checkSignupData(userToAdd)
+	if err != nil {
+		return "", err
+	}
 	hashedPassword, err := m.pswHasher.encode([]byte(userToAdd.Password))
 	if err != nil {
 		return "", nil

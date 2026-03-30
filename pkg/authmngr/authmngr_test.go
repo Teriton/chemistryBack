@@ -63,7 +63,7 @@ func TestCreateAndVerifyJWT(t *testing.T) {
 
 func TestLogin(t *testing.T) {
 	authMngr, _ := createAuthMngr(t)
-	jwt, err := authMngr.login("Shpack", "654321")
+	jwt, err := authMngr.Login("Shpack", "654321")
 	check(err, t)
 	fmt.Println(jwt)
 }
@@ -75,7 +75,7 @@ func TestSignup(t *testing.T) {
 		Password: "1234",
 		Username: "Tester",
 	}
-	jwt, err := authMngr.signup(userToAdd)
+	jwt, err := authMngr.Signup(userToAdd)
 	check(err, t)
 	err = dbRepo.DeleteUserByUserName(userToAdd.Username)
 	check(err, t)
