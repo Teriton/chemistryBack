@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/Teriton/chemistryBack/internal/models"
@@ -14,6 +15,29 @@ type LoginDataRequst struct {
 	Password string `json:"password"`
 }
 
+func createCookieJWT(jwt string) http.Cookie {
+	return http.Cookie{
+		Name:     "token",
+		Value:    jwt,
+		Path:     "/",
+		MaxAge:   3600,
+		HttpOnly: false,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	}
+}
+func deleteCookieJWT() http.Cookie {
+	return http.Cookie{
+		Name:     "token",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: false,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	}
+}
+
 type AuthHandler struct {
 	authMngr authmngr.AuthorizationMngr
 }
@@ -23,6 +47,8 @@ func NewAuthHandler(authMngr authmngr.AuthorizationMngr) (*AuthHandler, error) {
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+	log.Printf("[INFO] /login")
+	w.Header().Set("Content-Type", "application/json")
 	body, err := io.ReadAll(r.Body)
 	if checkError(w, err, http.StatusForbidden) {
 		return
@@ -36,20 +62,14 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if checkError(w, err, http.StatusForbidden) {
 		return
 	}
-	cookie := http.Cookie{
-		Name:     "token",
-		Value:    jwt,
-		Path:     "/",
-		MaxAge:   3600,
-		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
-	}
+	cookie := createCookieJWT(jwt)
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusAccepted)
+	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
 func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
+	log.Printf("[INFO] /signup")
 	body, err := io.ReadAll(r.Body)
 	if checkError(w, err, http.StatusBadRequest) {
 		return
@@ -63,17 +83,19 @@ func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	if checkError(w, err, http.StatusForbidden) {
 		return
 	}
-	cookie := http.Cookie{
-		Name:     "token",
-		Value:    jwt,
-		Path:     "/",
-		MaxAge:   3600,
-		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
-	}
+	cookie := createCookieJWT(jwt)
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusAccepted)
+	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+}
+
+func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	log.Printf("[INFO] /logout")
+	w.Header().Set("Content-Type", "application/json")
+	cookie := deleteCookieJWT()
+	http.SetCookie(w, &cookie)
+	w.WriteHeader(http.StatusAccepted)
+	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
 //func (h *AuthHandler) signupTest(w http.ResponseWriter, r *http.Request) {

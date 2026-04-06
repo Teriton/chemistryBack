@@ -8,7 +8,7 @@ type AddUser struct {
 }
 
 type User struct {
-	ID int
-	Xp int
+	ID int `json:"id"`
+	Xp int `json:"xp"`
 	AddUser
 }

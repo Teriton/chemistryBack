@@ -15,7 +15,7 @@ import (
 type AuthorizationMngr interface {
 	Login(username string, password string) (string, error) // Returns JWT token
 	Signup(models.AddUser) (string, error)                  // Returns JWT token
-
+	Verify(jwtToken string) (string, error)                 // Returns username
 }
 
 func checkSignupData(user models.AddUser) error {
@@ -30,8 +30,9 @@ func checkSignupData(user models.AddUser) error {
 	return nil
 }
 
-type AuthenticationMngr interface {
-	verify(jwt string) (models.User, error)
+type JWTClaims struct {
+	Username string `json:"username"`
+	jwt.RegisteredClaims
 }
 
 type Mngr struct {
@@ -91,4 +92,24 @@ func (m Mngr) Signup(userToAdd models.AddUser) (string, error) {
 		return "", err
 	}
 	return token, nil
+}
+
+func (m Mngr) Verify(jwtToken string) (string, error) {
+	key := os.Getenv("JWT_SECRET_TOKEN")
+	parseToken, err := jwt.ParseWithClaims(
+		jwtToken,
+		&JWTClaims{},
+		func(token *jwt.Token) (any, error) {
+			return []byte(key), nil
+		},
+		jwt.WithExpirationRequired(),
+	)
+	if err != nil {
+		return "", err
+	}
+	if claims, ok := parseToken.Claims.(*JWTClaims); ok {
+		return claims.Username, nil
+	}
+
+	return "", errors.New("error while parsing token")
 }

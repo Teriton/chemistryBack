@@ -12,11 +12,6 @@ import (
 	"github.com/Teriton/chemistryBack/pkg/dbrepo"
 )
 
-type TestJWTClaims struct {
-	Username string `json:"username"`
-	jwt.RegisteredClaims
-}
-
 func createAuthMngr(t *testing.T) (*Mngr, *dbrepo.PsqlRepo) {
 	var psqlRepo dbrepo.DBRepo
 	psqlRepo, err := dbrepo.NewPsqlRepo(os.Getenv("POSTGRESQL_URL"))
@@ -50,11 +45,11 @@ func TestCreateAndVerifyJWT(t *testing.T) {
 	check(err, t)
 	fmt.Println(signed)
 
-	parseToken, err := jwt.ParseWithClaims(signed, &TestJWTClaims{}, func(token *jwt.Token) (any, error) {
+	parseToken, err := jwt.ParseWithClaims(signed, &JWTClaims{}, func(token *jwt.Token) (any, error) {
 		return []byte(key), nil
 	}, jwt.WithExpirationRequired())
 	check(err, t)
-	if claims, ok := parseToken.Claims.(*TestJWTClaims); ok {
+	if claims, ok := parseToken.Claims.(*JWTClaims); ok {
 		fmt.Println(claims.Username, claims.Issuer)
 	} else {
 		t.Error("Error while parsing token")
@@ -80,4 +75,23 @@ func TestSignup(t *testing.T) {
 	err = dbRepo.DeleteUserByUserName(userToAdd.Username)
 	check(err, t)
 	fmt.Println(jwt)
+}
+
+func TestVerify(t *testing.T) {
+	authMngr, _ := createAuthMngr(t)
+	userToLogin := models.AddUser{
+		Password: "654321",
+		Username: "Shpack",
+	}
+	jwt, err := authMngr.Login(
+		userToLogin.Username,
+		userToLogin.Password,
+	)
+
+	check(err, t)
+
+	fmt.Println("Shpack: ", jwt)
+	user, err := authMngr.Verify(jwt)
+	check(err, t)
+	fmt.Println(user)
 }

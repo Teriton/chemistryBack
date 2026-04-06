@@ -23,6 +23,6 @@ func main() {
 	checkForError(err)
 	authMngr, err := authmngr.NewAuthMngr(dbRepo, pswHasher)
 	checkForError(err)
-	app := app.NewApp(articleReader, authMngr, ":8080")
+	app := app.NewApp(articleReader, authMngr, dbRepo, ":8080")
 	app.Run()
 }

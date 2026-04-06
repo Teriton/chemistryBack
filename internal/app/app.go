@@ -8,6 +8,7 @@ import (
 	"github.com/Teriton/chemistryBack/internal/handler"
 	"github.com/Teriton/chemistryBack/pkg/articlereader"
 	"github.com/Teriton/chemistryBack/pkg/authmngr"
+	"github.com/Teriton/chemistryBack/pkg/dbrepo"
 )
 
 type App struct {
@@ -16,13 +17,17 @@ type App struct {
 	AuthMngr      authmngr.AuthorizationMngr
 }
 
-func NewApp(articleReader articlereader.ArticleReader, authMngr authmngr.AuthorizationMngr, addr string) *App {
+func NewApp(articleReader articlereader.ArticleReader, authMngr authmngr.AuthorizationMngr, dbRepo dbrepo.DBRepo, addr string) *App {
 	mux := http.NewServeMux()
 
 	articleHandler := handler.NewArticlesHandler(articleReader)
 	authHandler, err := handler.NewAuthHandler(authMngr)
 	if err != nil {
-		panic("cant create auth handler")
+		panic("can't create auth handler")
+	}
+	userHandler, err := handler.NewUserHandler(authMngr, dbRepo)
+	if err != nil {
+		panic("can't create user handler")
 	}
 
 	mux.HandleFunc("GET /articles/list", articleHandler.ListArticles)
@@ -30,10 +35,15 @@ func NewApp(articleReader articlereader.ArticleReader, authMngr authmngr.Authori
 
 	mux.HandleFunc("POST /login", authHandler.Login)
 	mux.HandleFunc("POST /signup", authHandler.Signup)
+	mux.HandleFunc("POST /logout", authHandler.Logout)
+
+	mux.HandleFunc("GET /user", userHandler.GetUser)
+
+	handler := CORS(mux)
 
 	server := &http.Server{
 		Addr:    addr,
-		Handler: mux,
+		Handler: handler,
 	}
 
 	return &App{server, articleReader, authMngr}
