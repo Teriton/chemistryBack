@@ -18,6 +18,7 @@ func checkForError(err error) {
 func main() {
 	articleReader := articlereader.NewDirReader("articles")
 	dbRepo, err := dbrepo.NewPsqlRepo(os.Getenv("POSTGRESQL_URL"))
+	defer dbRepo.CloseDB()
 	checkForError(err)
 	pswHasher, err := authmngr.NewPasswordHasher()
 	checkForError(err)

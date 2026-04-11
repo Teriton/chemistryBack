@@ -1,0 +1,3 @@
+ALTER TABLE users 
+DROP COLUMN IF EXISTS streak,
+DROP COLUMN IF EXISTS creation_date;

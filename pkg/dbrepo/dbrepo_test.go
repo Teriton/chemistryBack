@@ -6,10 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-
-	"github.com/Teriton/chemistryBack/internal/models"
 )
 
 func check(err error, t *testing.T) {
@@ -40,23 +37,4 @@ func TestConnectionToDB(t *testing.T) {
 	}
 
 	fmt.Println(greeting)
-}
-func TestSelectionData(t *testing.T) {
-	dbpool, err := getConnection()
-	if err != nil {
-		t.Error(err)
-	}
-	defer dbpool.Close()
-
-	var users []models.User
-	var user models.User
-	rows, err := dbpool.Query(context.Background(), "select * from users")
-	check(err, t)
-	_, err = pgx.ForEachRow(rows, []any{&user.ID, &user.Email, &user.Password, &user.Username, &user.Xp}, func() error {
-		users = append(users, user)
-		return nil
-	})
-	check(err, t)
-
-	fmt.Println(users)
 }

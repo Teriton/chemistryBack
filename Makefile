@@ -8,10 +8,10 @@ exportEnv:
 	@echo set +a
 
 migrateUp:
-	$(MIGRATE_BIN) -database $(POSTGRESQL_URL) -path sql/migrations up
+	$(MIGRATE_BIN) -database $(POSTGRESQL_URL) -path sql/migrations up $(N)
 
 migrateDown:
-	$(MIGRATE_BIN) -database $(POSTGRESQL_URL) -path sql/migrations down
+	$(MIGRATE_BIN) -database $(POSTGRESQL_URL) -path sql/migrations down $(N)
 
 createMigration: 
 	migrate create -ext sql -dir ./sql/migrations -seq $(name)
