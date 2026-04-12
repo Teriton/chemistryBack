@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/Teriton/chemistryBack/internal/app"
+	"github.com/Teriton/chemistryBack/pkg/articlemngr"
 	"github.com/Teriton/chemistryBack/pkg/articlereader"
 	"github.com/Teriton/chemistryBack/pkg/authmngr"
 	"github.com/Teriton/chemistryBack/pkg/dbrepo"
@@ -24,6 +25,8 @@ func main() {
 	checkForError(err)
 	authMngr, err := authmngr.NewAuthMngr(dbRepo, pswHasher)
 	checkForError(err)
-	app := app.NewApp(articleReader, authMngr, dbRepo, ":8080")
+	articleMngr, err := articlemngr.NewArticleMngr(dbRepo)
+	checkForError(err)
+	app := app.NewApp(articleReader, authMngr, dbRepo, *articleMngr, ":8080")
 	app.Run()
 }

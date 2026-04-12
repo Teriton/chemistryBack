@@ -6,6 +6,15 @@ import (
 	"net/http"
 )
 
+func infoMessage(w http.ResponseWriter, message string, statusCode int) {
+	jsonString, err := json.Marshal(map[string]string{"info": message})
+	if err != nil {
+		log.Fatal(err)
+	}
+	w.WriteHeader(statusCode)
+	w.Write(jsonString)
+}
+
 func checkError(w http.ResponseWriter, err error, statusCode int) bool {
 	if err != nil {
 		errorMessageJSON := errorMessage(err)

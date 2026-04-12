@@ -2,6 +2,8 @@
 package articlemngr
 
 import (
+	"errors"
+
 	"github.com/Teriton/chemistryBack/pkg/dbrepo"
 )
 
@@ -35,7 +37,7 @@ func (at ArticleMngr) CompleteLesson(username string, lessonTitle string, xp int
 	}
 	err = at.dbrepo.CreateCompletedLesson(user.ID, lesson.ID)
 	if err != nil {
-		return err
+		return errors.New("lesson already completed")
 	}
 	err = at.dbrepo.AddXPToUser(user.ID, xp)
 	if err != nil {
