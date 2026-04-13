@@ -54,6 +54,7 @@ func NewApp(
 	mux.HandleFunc("POST /logout", authHandler.Logout)
 
 	mux.HandleFunc("GET /user", userHandler.GetUser)
+	mux.HandleFunc("GET /user/completedLessons", userHandler.GetUserWithCopletedLessosnCount)
 
 	mux.HandleFunc("POST /complete", questionHandler.CompleteArticle)
 

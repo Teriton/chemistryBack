@@ -6,9 +6,15 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/Teriton/chemistryBack/internal/models"
 	"github.com/Teriton/chemistryBack/pkg/authmngr"
 	"github.com/Teriton/chemistryBack/pkg/dbrepo"
 )
+
+type UserWithCompletedLessonsCount struct {
+	models.User
+	CompletedLessonsCount int `json:"completed_lessons"`
+}
 
 type UserHandler struct {
 	authMngr authmngr.AuthorizationMngr
@@ -43,4 +49,35 @@ func (uh *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(user)
+}
+
+func (uh *UserHandler) GetUserWithCopletedLessosnCount(w http.ResponseWriter, r *http.Request) {
+	log.Printf("[INFO] /user/completedLessons")
+	w.Header().Set("Content-Type", "application/json")
+	cookies := r.CookiesNamed("token")
+
+	var err error
+	if len(cookies) < 1 {
+		err = errors.New("cookie is not set")
+	}
+	if checkError(w, err, http.StatusForbidden) {
+		return
+	}
+
+	jwtToken := cookies[0].Value
+	username, err := uh.authMngr.Verify(jwtToken)
+	if checkError(w, err, http.StatusForbidden) {
+		return
+	}
+	user, err := uh.dbRepo.GetUserByUserName(username)
+	if checkError(w, err, http.StatusForbidden) {
+		return
+	}
+	completedLessons, err := uh.dbRepo.GetCompletedLessonsLenForUser(user.ID)
+	if checkError(w, err, http.StatusForbidden) {
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+	json.NewEncoder(w).Encode(UserWithCompletedLessonsCount{user, completedLessons})
 }
