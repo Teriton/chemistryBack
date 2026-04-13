@@ -3,20 +3,11 @@ package articlereader
 import "encoding/json"
 
 type ArticleObject interface {
-	Title() string
 }
 
 type Article struct {
-	title   string
-	content string
-}
-
-func (a Article) Title() string {
-	return a.title
-}
-
-func (a *Article) Content() string {
-	return a.content
+	Title   string `json:"title"`
+	Content string `json:"content"`
 }
 
 func (a Article) MarshalJSONWithContent() ([]byte, error) {
@@ -26,8 +17,8 @@ func (a Article) MarshalJSONWithContent() ([]byte, error) {
 	}
 
 	return json.Marshal(&Alias{
-		Title:   a.title,
-		Content: a.content,
+		Title:   a.Title,
+		Content: a.Content,
 	})
 }
 
@@ -37,6 +28,6 @@ func (a Article) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(&Alias{
-		Title: a.title,
+		Title: a.Title,
 	})
 }

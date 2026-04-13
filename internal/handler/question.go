@@ -49,7 +49,7 @@ func (qh *QuestionHandler) CompleteArticle(w http.ResponseWriter, r *http.Reques
 	}
 
 	jwtToken := cookies[0].Value
-	username, err := qh.authMngr.Verify(jwtToken)
+	jwtContent, err := qh.authMngr.Verify(jwtToken)
 	if checkError(w, err, http.StatusForbidden) {
 		return
 	}
@@ -68,7 +68,7 @@ func (qh *QuestionHandler) CompleteArticle(w http.ResponseWriter, r *http.Reques
 	}
 
 	err = qh.articleMngr.CompleteLesson(
-		username,
+		jwtContent.Username,
 		completeDataRequest.LessonTitle,
 		completeDataRequest.Xp,
 	)

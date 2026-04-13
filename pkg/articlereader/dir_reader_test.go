@@ -18,7 +18,7 @@ func newDirReaderForTest() *DirReader {
 func TestArticleFromFile(t *testing.T) {
 	arcticle, err := artticleFromFile("../../articles/test/Test.md")
 	check(err, t)
-	if arcticle.Title() != "Test" {
+	if arcticle.Title != "Test" {
 		t.Errorf("ArticleFromFile result: %#v\n", arcticle)
 	}
 }
@@ -43,11 +43,11 @@ func TestGetArticle(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if article.title != expectedTitle {
-		t.Errorf("%s doest match expected %s", article.title, expectedTitle)
+	if article.Title != expectedTitle {
+		t.Errorf("%s doest match expected %s", article.Title, expectedTitle)
 	}
-	if article.content != expectedContent {
-		t.Errorf("%s doest match expected %s", article.content, expectedContent)
+	if article.Content != expectedContent {
+		t.Errorf("%s doest match expected %s", article.Content, expectedContent)
 	}
-	fmt.Printf("Title: %s\nContent:%s\n", article.title, article.content)
+	fmt.Printf("Title: %s\nContent:%s\n", article.Title, article.Content)
 }

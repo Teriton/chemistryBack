@@ -8,12 +8,8 @@ import (
 )
 
 type Chapter struct {
-	title          string
+	Title          string
 	articleObjects []ArticleObject
-}
-
-func (c Chapter) Title() string {
-	return c.title
 }
 
 func (c Chapter) ArticleObjects() []ArticleObject {
@@ -21,11 +17,11 @@ func (c Chapter) ArticleObjects() []ArticleObject {
 }
 
 func printChapter(c Chapter) {
-	fmt.Printf("\t%s\n", c.title)
+	fmt.Printf("\t%s\n", c.Title)
 	for _, articleObject := range c.articleObjects {
 		article, ok := articleObject.(Article)
 		if ok {
-			fmt.Println(article.Title())
+			fmt.Println(article.Title)
 		}
 		if chapter, ok := articleObject.(Chapter); ok {
 			printChapter(chapter)
@@ -36,13 +32,13 @@ func printChapter(c Chapter) {
 func (c Chapter) PrintChapter() {
 	printChapter(c)
 }
+
 func (c Chapter) MarshalJSON() ([]byte, error) {
-	type Alias Chapter
 	return json.Marshal(&struct {
 		Title    string          `json:"title"`
 		Articles []ArticleObject `json:"articles,omitempty"`
 	}{
-		Title:    c.title,
+		Title:    c.Title,
 		Articles: c.articleObjects,
 	})
 }
@@ -50,12 +46,12 @@ func (c Chapter) MarshalJSON() ([]byte, error) {
 func getArticle(articleToFind []string, c Chapter) (Article, error) {
 	for _, articleObject := range c.articleObjects {
 		article, ok := articleObject.(Article)
-		if ok && len(articleToFind) == 1 && article.title == articleToFind[0] {
+		if ok && len(articleToFind) == 1 && article.Title == articleToFind[0] {
 			return article, nil
 		}
-		if chapter, ok := articleObject.(Chapter); ok && chapter.title == articleToFind[0] {
+		if chapter, ok := articleObject.(Chapter); ok && chapter.Title == articleToFind[0] {
 			if len(articleToFind) == 1 {
-				return Article{title: chapter.title, content: "CHAPTER"}, nil
+				return Article{Title: chapter.Title, Content: "CHAPTER"}, nil
 			} else {
 				article, err := getArticle(articleToFind[1:], chapter)
 				if err != nil {

@@ -7,17 +7,30 @@ import (
 	"net/http"
 
 	"github.com/Teriton/chemistryBack/pkg/articlereader"
+	"github.com/Teriton/chemistryBack/pkg/authmngr"
+	"github.com/Teriton/chemistryBack/pkg/dbrepo"
 )
 
 type ArticlesHandler struct {
+	authMngr      authmngr.AuthorizationMngr
+	dbRepo        dbrepo.DBRepo
 	articleReader articlereader.ArticleReader
 }
 
-func NewArticlesHandler(articleReader articlereader.ArticleReader) *ArticlesHandler {
-	return &ArticlesHandler{articleReader: articleReader}
+func NewArticlesHandler(
+	authMngr authmngr.AuthorizationMngr,
+	dbRepo dbrepo.DBRepo,
+	articleReader articlereader.ArticleReader,
+) *ArticlesHandler {
+	return &ArticlesHandler{
+		articleReader: articleReader,
+		dbRepo:        dbRepo,
+		authMngr:      authMngr,
+	}
 }
 
 func (h *ArticlesHandler) ListArticles(w http.ResponseWriter, r *http.Request) {
+	log.Printf("[INFO] /articles/list")
 	chapter, err := h.articleReader.GetRootChapter()
 	if err != nil {
 		log.Fatal(err)
@@ -28,6 +41,48 @@ func (h *ArticlesHandler) ListArticles(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 	w.Write(jsonString)
+}
+
+func (h *ArticlesHandler) ListArticlesWithCompletion(w http.ResponseWriter, r *http.Request) {
+	log.Printf("[INFO] /articles/list")
+	chapter, err := h.articleReader.GetRootChapter()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	cookies := r.CookiesNamed("token")
+
+	if len(cookies) < 1 {
+		jsonString, err := chapter.MarshalJSON()
+		if err != nil {
+			log.Fatal(err)
+		}
+		w.WriteHeader(http.StatusAccepted)
+		w.Write(jsonString)
+		return
+	}
+
+	jwtToken := cookies[0].Value
+	jwtContent, err := h.authMngr.Verify(jwtToken)
+	if checkError(w, err, http.StatusForbidden) {
+		return
+	}
+	titles, err := h.dbRepo.GetCompletedLessonsForUser(jwtContent.UserID)
+	if checkError(w, err, http.StatusForbidden) {
+		return
+	}
+	response := map[string]any{
+		"chapter": chapter,
+		"titles":  titles,
+	}
+
+	jsonData, err := json.Marshal(response)
+	if checkError(w, err, http.StatusForbidden) {
+		return
+	}
+	w.WriteHeader(http.StatusAccepted)
+	w.Write(jsonData)
 }
 
 func (h *ArticlesHandler) GetArticle(w http.ResponseWriter, r *http.Request) {

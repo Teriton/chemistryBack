@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/Teriton/chemistryBack/internal/models"
@@ -24,6 +25,7 @@ type DBRepo interface {
 	CreateCompletedLesson(int, int) error
 	DeleteCompletedLesson(int, int) error
 	GetCompletedLessonsLenForUser(int) (int, error)
+	GetCompletedLessonsForUser(int) ([]string, error)
 
 	CloseDB() error
 }
@@ -235,6 +237,24 @@ func (pr PsqlRepo) GetCompletedLessonsLenForUser(userID int) (int, error) {
 		return -1, err
 	}
 	return complitedLessonsCount, nil
+}
+
+func (pr PsqlRepo) GetCompletedLessonsForUser(userID int) ([]string, error) {
+	rows, err := pr.dbPool.Query(
+		context.Background(),
+		`SELECT l.title
+		 FROM lessons_completed lc
+		 JOIN lessons l ON lc.lesson_id = l.id
+		 WHERE lc.user_id = $1`,
+		userID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	titles, err := pgx.CollectRows(rows, pgx.RowTo[string])
+	return titles, err
 }
 
 func (pr PsqlRepo) GetUserByID(userID int) (models.User, error) {

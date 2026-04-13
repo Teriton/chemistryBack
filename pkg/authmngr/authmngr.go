@@ -12,10 +12,15 @@ import (
 	"github.com/Teriton/chemistryBack/pkg/dbrepo"
 )
 
+type JWTContent struct {
+	Username string
+	UserID   int
+}
+
 type AuthorizationMngr interface {
 	Login(username string, password string) (string, error) // Returns JWT token
 	Signup(models.AddUser) (string, error)                  // Returns JWT token
-	Verify(jwtToken string) (string, error)                 // Returns username
+	Verify(jwtToken string) (JWTContent, error)
 }
 
 func checkSignupData(user models.AddUser) error {
@@ -32,6 +37,7 @@ func checkSignupData(user models.AddUser) error {
 
 type JWTClaims struct {
 	Username string `json:"username"`
+	UserID   int    `json:"user_id"`
 	jwt.RegisteredClaims
 }
 
@@ -44,10 +50,11 @@ func NewAuthMngr(dbrepo dbrepo.DBRepo, pswHaser Hasher) (*Mngr, error) {
 	return &Mngr{dbrepo, pswHaser}, nil
 }
 
-func generateJWT(username string) (string, error) {
+func generateJWT(username string, userID int) (string, error) {
 	key := os.Getenv("JWT_SECRET_TOKEN")
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"username": username,
+		"user_id":  userID,
 		"exp":      time.Now().Add(time.Hour * 1).Unix(),
 	})
 	signed, err := token.SignedString([]byte(key))
@@ -65,7 +72,7 @@ func (m Mngr) Login(username string, password string) (string, error) {
 	if !m.pswHasher.check([]byte(user.Password), []byte(password)) {
 		return "", errors.New("incorect password")
 	}
-	token, err := generateJWT(user.Username)
+	token, err := generateJWT(user.Username, user.ID)
 	if err != nil {
 		return "", err
 	}
@@ -87,14 +94,18 @@ func (m Mngr) Signup(userToAdd models.AddUser) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	token, err := generateJWT(userToAdd.Username)
+	user, err := m.dbrepo.GetUserByUserName(userToAdd.Username)
+	if err != nil {
+		return "", err
+	}
+	token, err := generateJWT(userToAdd.Username, user.ID)
 	if err != nil {
 		return "", err
 	}
 	return token, nil
 }
 
-func (m Mngr) Verify(jwtToken string) (string, error) {
+func (m Mngr) Verify(jwtToken string) (JWTContent, error) {
 	key := os.Getenv("JWT_SECRET_TOKEN")
 	parseToken, err := jwt.ParseWithClaims(
 		jwtToken,
@@ -105,11 +116,14 @@ func (m Mngr) Verify(jwtToken string) (string, error) {
 		jwt.WithExpirationRequired(),
 	)
 	if err != nil {
-		return "", err
+		return JWTContent{}, err
 	}
 	if claims, ok := parseToken.Claims.(*JWTClaims); ok {
-		return claims.Username, nil
+		if err != nil {
+			return JWTContent{}, err
+		}
+		return JWTContent{Username: claims.Username, UserID: claims.UserID}, nil
 	}
 
-	return "", errors.New("error while parsing token")
+	return JWTContent{}, errors.New("error while parsing token")
 }

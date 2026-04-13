@@ -39,11 +39,11 @@ func (uh *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jwtToken := cookies[0].Value
-	username, err := uh.authMngr.Verify(jwtToken)
+	jwtContent, err := uh.authMngr.Verify(jwtToken)
 	if checkError(w, err, http.StatusForbidden) {
 		return
 	}
-	user, err := uh.dbRepo.GetUserByUserName(username)
+	user, err := uh.dbRepo.GetUserByUserName(jwtContent.Username)
 	if checkError(w, err, http.StatusForbidden) {
 		return
 	}
@@ -65,11 +65,11 @@ func (uh *UserHandler) GetUserWithCopletedLessosnCount(w http.ResponseWriter, r 
 	}
 
 	jwtToken := cookies[0].Value
-	username, err := uh.authMngr.Verify(jwtToken)
+	jwtContent, err := uh.authMngr.Verify(jwtToken)
 	if checkError(w, err, http.StatusForbidden) {
 		return
 	}
-	user, err := uh.dbRepo.GetUserByUserName(username)
+	user, err := uh.dbRepo.GetUserByUserName(jwtContent.Username)
 	if checkError(w, err, http.StatusForbidden) {
 		return
 	}

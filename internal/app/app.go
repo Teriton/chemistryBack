@@ -28,7 +28,7 @@ func NewApp(
 ) *App {
 	mux := http.NewServeMux()
 
-	articleHandler := handler.NewArticlesHandler(articleReader)
+	articleHandler := handler.NewArticlesHandler(authMngr, dbRepo, articleReader)
 	authHandler, err := handler.NewAuthHandler(authMngr)
 	if err != nil {
 		panic("can't create auth handler")
@@ -46,7 +46,7 @@ func NewApp(
 		panic("can't create question handler")
 	}
 
-	mux.HandleFunc("GET /articles/list", articleHandler.ListArticles)
+	mux.HandleFunc("GET /articles/list", articleHandler.ListArticlesWithCompletion)
 	mux.HandleFunc("GET /articles/byPath/{path...}", articleHandler.GetArticle)
 
 	mux.HandleFunc("POST /login", authHandler.Login)

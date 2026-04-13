@@ -84,6 +84,36 @@ func TestCompletedLessons(t *testing.T) {
 	check(err, t)
 }
 
+func TestCompletedLessonsList(t *testing.T) {
+	dbRepo := CreatePsql(t)
+	defer dbRepo.CloseDB()
+	title := "ShpackTest"
+	user, err := dbRepo.GetUserByUserName("Shpack")
+	check(err, t)
+	err = dbRepo.CreateLessonWithTitle(title)
+	check(err, t)
+	lesson, err := dbRepo.GetLessonByTitle(title)
+	check(err, t)
+
+	err = dbRepo.CreateCompletedLesson(user.ID, lesson.ID)
+	check(err, t)
+	count, err := dbRepo.GetCompletedLessonsLenForUser(user.ID)
+	check(err, t)
+	fmt.Printf("Lessons complited by user Shpack: %v\n", count)
+	if count < 1 {
+		t.Error("lessons should be more than 0")
+	}
+	titles, err := dbRepo.GetCompletedLessonsForUser(user.ID)
+	check(err, t)
+	if len(titles) < 1 {
+		t.Error("titles should be more than 0")
+	}
+	fmt.Println(titles)
+	err = dbRepo.DeleteCompletedLesson(user.ID, lesson.ID)
+	check(err, t)
+	err = dbRepo.DeleteLessonByTitle(title)
+	check(err, t)
+}
 func TestChangingXP(t *testing.T) {
 	dbRepo := CreatePsql(t)
 	defer dbRepo.CloseDB()

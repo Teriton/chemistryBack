@@ -35,18 +35,18 @@ func artticleFromFile(filePath string) (Article, error) {
 	defer file.Close()
 
 	currentArticle := Article{}
-	currentArticle.title = getArticleTitleFromPath(file.Name())
+	currentArticle.Title = getArticleTitleFromPath(file.Name())
 	fileContent, err := os.ReadFile(filePath)
 	if err != nil {
 		return Article{}, err
 	}
-	currentArticle.content = string(fileContent)
+	currentArticle.Content = string(fileContent)
 
 	return currentArticle, nil
 }
 
 func readInternalDir(dir string) Chapter {
-	currentChapter := Chapter{title: getArticleTitleFromPath(dir), articleObjects: []ArticleObject{}}
+	currentChapter := Chapter{Title: getArticleTitleFromPath(dir), articleObjects: []ArticleObject{}}
 	files, err := os.ReadDir(dir)
 	if err != nil {
 		log.Fatal(err)
