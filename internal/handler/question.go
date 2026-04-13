@@ -72,7 +72,7 @@ func (qh *QuestionHandler) CompleteArticle(w http.ResponseWriter, r *http.Reques
 		completeDataRequest.LessonTitle,
 		completeDataRequest.Xp,
 	)
-	if err.Error() == "lesson already completed" {
+	if err != nil && err.Error() == "lesson already completed" {
 		infoMessage(w, err.Error(), http.StatusAlreadyReported)
 		return
 	} else if checkError(w, err, http.StatusForbidden) {
