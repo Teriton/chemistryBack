@@ -52,7 +52,7 @@ func (uh *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (uh *UserHandler) GetUserWithCopletedLessosnCount(w http.ResponseWriter, r *http.Request) {
-	log.Printf("[INFO] /user/completedLessons")
+	log.Printf("[INFO] /user/completedLessonsCount")
 	w.Header().Set("Content-Type", "application/json")
 	cookies := r.CookiesNamed("token")
 

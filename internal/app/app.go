@@ -46,15 +46,16 @@ func NewApp(
 		panic("can't create question handler")
 	}
 
-	mux.HandleFunc("GET /articles/list", articleHandler.ListArticlesWithCompletion)
+	mux.HandleFunc("GET /articles/list", articleHandler.ListArticles)
 	mux.HandleFunc("GET /articles/byPath/{path...}", articleHandler.GetArticle)
+	mux.HandleFunc("GET /articles/lessonsCompleted", articleHandler.LessonsCompleted)
 
 	mux.HandleFunc("POST /login", authHandler.Login)
 	mux.HandleFunc("POST /signup", authHandler.Signup)
 	mux.HandleFunc("POST /logout", authHandler.Logout)
 
 	mux.HandleFunc("GET /user", userHandler.GetUser)
-	mux.HandleFunc("GET /user/completedLessons", userHandler.GetUserWithCopletedLessosnCount)
+	mux.HandleFunc("GET /user/completedLessonsCount", userHandler.GetUserWithCopletedLessosnCount)
 
 	mux.HandleFunc("POST /complete", questionHandler.CompleteArticle)
 

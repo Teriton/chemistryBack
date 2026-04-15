@@ -3,6 +3,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 
@@ -43,23 +44,16 @@ func (h *ArticlesHandler) ListArticles(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonString)
 }
 
-func (h *ArticlesHandler) ListArticlesWithCompletion(w http.ResponseWriter, r *http.Request) {
-	log.Printf("[INFO] /articles/list")
-	chapter, err := h.articleReader.GetRootChapter()
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func (h *ArticlesHandler) LessonsCompleted(w http.ResponseWriter, r *http.Request) {
+	log.Printf("[INFO] /articles/lessonsCompleted")
 	w.Header().Set("Content-Type", "application/json")
 	cookies := r.CookiesNamed("token")
 
+	var err error
 	if len(cookies) < 1 {
-		jsonString, err := chapter.MarshalJSON()
-		if err != nil {
-			log.Fatal(err)
-		}
-		w.WriteHeader(http.StatusAccepted)
-		w.Write(jsonString)
+		err = errors.New("cookie is not set")
+	}
+	if checkError(w, err, http.StatusForbidden) {
 		return
 	}
 
@@ -73,8 +67,7 @@ func (h *ArticlesHandler) ListArticlesWithCompletion(w http.ResponseWriter, r *h
 		return
 	}
 	response := map[string]any{
-		"chapter": chapter,
-		"titles":  titles,
+		"titles": titles,
 	}
 
 	jsonData, err := json.Marshal(response)
