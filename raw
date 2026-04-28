@@ -1,0 +1,5 @@
+curl --header "Content-Type: application/json " \
+--header "Cookie: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzczOTcxNTcsInVzZXJfaWQiOjEsInVzZXJuYW1lIjoiU2hwYWNrIn0.MyLG_ZYWhSVnvfe3PGpg6BNezmnyGsDUQr32-52oLtM" \
+--request POST \
+--data '{"username":"Shpack", "password":"1234", "email":"sosal@da.com"}' \
+http://localhost:8080/user/edit

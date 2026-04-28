@@ -58,7 +58,7 @@ func (h *ArticlesHandler) LessonsCompleted(w http.ResponseWriter, r *http.Reques
 	}
 
 	jwtToken := cookies[0].Value
-	jwtContent, err := h.authMngr.Verify(jwtToken)
+	jwtContent, err := h.authMngr.VerifyToken(jwtToken)
 	if checkError(w, err, http.StatusForbidden) {
 		return
 	}

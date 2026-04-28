@@ -14,6 +14,7 @@ import (
 type DBRepo interface {
 	CreateUser(models.AddUser) error
 	DeleteUserByUserName(string) error
+	EditUser(models.AddUser, string) error
 	GetUserByUserName(string) (models.User, error)
 	GetUserByID(int) (models.User, error)
 	AddXPToUser(int, int) error
@@ -81,6 +82,28 @@ func (pr PsqlRepo) DeleteUserByUserName(username string) error {
 		context.Background(),
 		"delete from users where username=$1",
 		username,
+	)
+	if err != nil {
+		return err
+	}
+	err = tx.Commit(context.Background())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (pr PsqlRepo) EditUser(user models.AddUser, currentUserName string) error {
+	tx, err := pr.dbPool.Begin(context.Background())
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback(context.Background())
+
+	_, err = tx.Exec(
+		context.Background(),
+		"UPDATE users SET email=$1, password=$2, username=$3  WHERE username=$4;",
+		user.Email, user.Password, user.Username, currentUserName,
 	)
 	if err != nil {
 		return err

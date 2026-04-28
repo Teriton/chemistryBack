@@ -22,6 +22,7 @@ func (ph PasswordHasher) encode(rawPassword []byte) ([]byte, error) {
 	return hashedPassword, nil
 }
 
+// check returns true if password is correct
 func (ph PasswordHasher) check(hashedPassword []byte, rawPassword []byte) bool {
 	err := bcrypt.CompareHashAndPassword(hashedPassword, []byte(rawPassword))
 	return err == nil

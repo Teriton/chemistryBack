@@ -77,6 +77,24 @@ func TestSignup(t *testing.T) {
 	fmt.Println(jwt)
 }
 
+func TestEdit(t *testing.T) {
+	authMngr, dbRepo := createAuthMngr(t)
+	userToAdd := models.AddUser{
+		Email:    "test@test.test",
+		Password: "1234",
+		Username: "Tester",
+	}
+	jwt, err := authMngr.Signup(userToAdd)
+	check(err, t)
+	println(jwt)
+	currentUsername := userToAdd.Username
+	userToAdd.Username = "Tester2"
+	jwt, err = authMngr.EditUserInfo(userToAdd, currentUsername)
+	check(err, t)
+	println(jwt)
+	err = dbRepo.DeleteUserByUserName(userToAdd.Username)
+	check(err, t)
+}
 func TestVerify(t *testing.T) {
 	authMngr, _ := createAuthMngr(t)
 	userToLogin := models.AddUser{
@@ -91,7 +109,26 @@ func TestVerify(t *testing.T) {
 	check(err, t)
 
 	fmt.Println("Shpack: ", jwt)
-	user, err := authMngr.Verify(jwt)
+	user, err := authMngr.VerifyToken(jwt)
+	check(err, t)
+	fmt.Println(user)
+}
+
+func TestVerifyTokenAndPassword(t *testing.T) {
+	authMngr, _ := createAuthMngr(t)
+	userToLogin := models.AddUser{
+		Password: "654321",
+		Username: "Shpack",
+	}
+	jwt, err := authMngr.Login(
+		userToLogin.Username,
+		userToLogin.Password,
+	)
+
+	check(err, t)
+
+	fmt.Println("Shpack: ", jwt)
+	user, err := authMngr.VerifyPasswordAndToken(jwt, userToLogin.Password)
 	check(err, t)
 	fmt.Println(user)
 }

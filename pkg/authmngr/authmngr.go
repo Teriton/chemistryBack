@@ -20,7 +20,9 @@ type JWTContent struct {
 type AuthorizationMngr interface {
 	Login(username string, password string) (string, error) // Returns JWT token
 	Signup(models.AddUser) (string, error)                  // Returns JWT token
-	Verify(jwtToken string) (JWTContent, error)
+	VerifyToken(jwtToken string) (JWTContent, error)
+	EditUserInfo(models.AddUser, string) (string, error)
+	VerifyPasswordAndToken(string, string) (JWTContent, error)
 }
 
 func checkSignupData(user models.AddUser) error {
@@ -105,7 +107,7 @@ func (m Mngr) Signup(userToAdd models.AddUser) (string, error) {
 	return token, nil
 }
 
-func (m Mngr) Verify(jwtToken string) (JWTContent, error) {
+func (m Mngr) VerifyToken(jwtToken string) (JWTContent, error) {
 	key := os.Getenv("JWT_SECRET_TOKEN")
 	parseToken, err := jwt.ParseWithClaims(
 		jwtToken,
@@ -126,4 +128,60 @@ func (m Mngr) Verify(jwtToken string) (JWTContent, error) {
 	}
 
 	return JWTContent{}, errors.New("error while parsing token")
+}
+
+func (m Mngr) EditUserInfo(userToAdd models.AddUser, currentUsername string) (string, error) {
+	err := checkSignupData(userToAdd)
+	if err != nil {
+		return "", err
+	}
+	hashedPassword, err := m.pswHasher.encode([]byte(userToAdd.Password))
+	if err != nil {
+		return "", nil
+	}
+	userToAdd.Password = string(hashedPassword)
+	err = m.dbrepo.EditUser(userToAdd, currentUsername)
+	if err != nil {
+		return "", err
+	}
+	user, err := m.dbrepo.GetUserByUserName(userToAdd.Username)
+	if err != nil {
+		return "", err
+	}
+	token, err := generateJWT(userToAdd.Username, user.ID)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
+}
+
+func (m Mngr) VerifyPasswordAndToken(jwtToken string, password string) (JWTContent, error) {
+	key := os.Getenv("JWT_SECRET_TOKEN")
+	parseToken, err := jwt.ParseWithClaims(
+		jwtToken,
+		&JWTClaims{},
+		func(token *jwt.Token) (any, error) {
+			return []byte(key), nil
+		},
+		jwt.WithExpirationRequired(),
+	)
+	if err != nil {
+		return JWTContent{}, err
+	}
+
+	claims, ok := parseToken.Claims.(*JWTClaims)
+	if !ok {
+		return JWTContent{}, errors.New("error while parsing token")
+	}
+
+	user, err := m.dbrepo.GetUserByUserName(claims.Username)
+	if err != nil {
+		return JWTContent{}, err
+	}
+
+	if !m.pswHasher.check([]byte(user.Password), []byte(password)) {
+		return JWTContent{}, errors.New("incorect password")
+	}
+
+	return JWTContent{Username: claims.Username, UserID: claims.UserID}, nil
 }

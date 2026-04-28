@@ -49,7 +49,7 @@ func (qh *QuestionHandler) CompleteArticle(w http.ResponseWriter, r *http.Reques
 	}
 
 	jwtToken := cookies[0].Value
-	jwtContent, err := qh.authMngr.Verify(jwtToken)
+	jwtContent, err := qh.authMngr.VerifyToken(jwtToken)
 	if checkError(w, err, http.StatusForbidden) {
 		return
 	}

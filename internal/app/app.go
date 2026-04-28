@@ -56,6 +56,7 @@ func NewApp(
 
 	mux.HandleFunc("GET /user", userHandler.GetUser)
 	mux.HandleFunc("GET /user/completedLessonsCount", userHandler.GetUserWithCopletedLessosnCount)
+	mux.HandleFunc("POST /user/edit", userHandler.EditUserInfo)
 
 	mux.HandleFunc("POST /complete", questionHandler.CompleteArticle)
 
