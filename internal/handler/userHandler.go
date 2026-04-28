@@ -109,6 +109,10 @@ func (uh *UserHandler) EditUserInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if userData.Password == "" {
+		userData.Password = userData.CurrentPassword
+	}
+
 	jwtToken := cookies[0].Value
 	jwtContent, err := uh.authMngr.VerifyPasswordAndToken(jwtToken, userData.CurrentPassword)
 	if checkError(w, err, http.StatusForbidden) {
