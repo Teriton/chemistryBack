@@ -1,1 +1,0 @@
-# ARTICLE WITH somE TEST
