@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"log"
 	"os"
 
 	"github.com/Teriton/chemistryBack/internal/app"
@@ -21,6 +23,9 @@ func main() {
 	dbRepo, err := dbrepo.NewPsqlRepo(os.Getenv("POSTGRESQL_URL"))
 	defer dbRepo.CloseDB()
 	checkForError(err)
+	if err := dbRepo.EnsureUserAvatarColumn(context.Background()); err != nil {
+		log.Printf("[WARN] не удалось проверить колонку avatar_data (выполните миграцию вручную): %v", err)
+	}
 	pswHasher, err := authmngr.NewPasswordHasher()
 	checkForError(err)
 	authMngr, err := authmngr.NewAuthMngr(dbRepo, pswHasher)

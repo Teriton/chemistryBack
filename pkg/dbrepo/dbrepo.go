@@ -18,6 +18,7 @@ type DBRepo interface {
 	GetUserByUserName(string) (models.User, error)
 	GetUserByID(int) (models.User, error)
 	AddXPToUser(int, int) error
+	UpdateUserAvatar(int, string) error
 
 	GetLessonByTitle(string) (models.Lesson, error)
 	CreateLessonWithTitle(string) error
@@ -27,6 +28,9 @@ type DBRepo interface {
 	DeleteCompletedLesson(int, int) error
 	GetCompletedLessonsLenForUser(int) (int, error)
 	GetCompletedLessonsForUser(int) ([]string, error)
+
+	// EnsureUserAvatarColumn добавляет avatar_data, если колонки ещё нет (когда не запускали migrate).
+	EnsureUserAvatarColumn(context.Context) error
 
 	CloseDB() error
 }
@@ -115,11 +119,20 @@ func (pr PsqlRepo) EditUser(user models.AddUser, currentUserName string) error {
 	return nil
 }
 
+const userSelectColumns = `id, email, password, username, xp, streak, creation_date, COALESCE(avatar_data, '') AS avatar_data`
+
+func (pr PsqlRepo) EnsureUserAvatarColumn(ctx context.Context) error {
+	_, err := pr.dbPool.Exec(ctx, `
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS avatar_data TEXT NOT NULL DEFAULT ''`)
+	return err
+}
+
 func (pr PsqlRepo) GetUserByUserName(username string) (models.User, error) {
 	var user models.User
 	err := pr.dbPool.QueryRow(
 		context.Background(),
-		"select * from users where username = $1", username).Scan(
+		"SELECT "+userSelectColumns+" FROM users WHERE username = $1", username).Scan(
 		&user.ID,
 		&user.Email,
 		&user.Password,
@@ -127,6 +140,7 @@ func (pr PsqlRepo) GetUserByUserName(username string) (models.User, error) {
 		&user.Xp,
 		&user.Streak,
 		&user.CreationDate,
+		&user.AvatarData,
 	)
 
 	if err != nil {
@@ -284,7 +298,7 @@ func (pr PsqlRepo) GetUserByID(userID int) (models.User, error) {
 	var user models.User
 	err := pr.dbPool.QueryRow(
 		context.Background(),
-		"select * from users where id = $1", userID).Scan(
+		"SELECT "+userSelectColumns+" FROM users WHERE id = $1", userID).Scan(
 		&user.ID,
 		&user.Email,
 		&user.Password,
@@ -292,6 +306,7 @@ func (pr PsqlRepo) GetUserByID(userID int) (models.User, error) {
 		&user.Xp,
 		&user.Streak,
 		&user.CreationDate,
+		&user.AvatarData,
 	)
 
 	if err != nil {
@@ -321,4 +336,21 @@ func (pr PsqlRepo) AddXPToUser(userID int, xp int) error {
 	}
 	return nil
 
+}
+
+func (pr PsqlRepo) UpdateUserAvatar(userID int, avatar string) error {
+	tx, err := pr.dbPool.Begin(context.Background())
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(context.Background())
+	_, err = tx.Exec(
+		context.Background(),
+		"UPDATE users SET avatar_data = $1 WHERE id = $2",
+		avatar, userID,
+	)
+	if err != nil {
+		return err
+	}
+	return tx.Commit(context.Background())
 }

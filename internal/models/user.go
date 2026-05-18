@@ -14,5 +14,6 @@ type User struct {
 	Xp           int       `json:"xp"`
 	Streak       int       `json:"streak"`
 	CreationDate time.Time `json:"creation_date"`
+	AvatarData   string    `json:"avatar"`
 	AddUser
 }
