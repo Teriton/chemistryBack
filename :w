@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
@@ -29,8 +28,6 @@ type DBRepo interface {
 	DeleteCompletedLesson(int, int) error
 	GetCompletedLessonsLenForUser(int) (int, error)
 	GetCompletedLessonsForUser(int) ([]string, error)
-	GetCompletedAchievementsForUser(int) ([]models.Achievement, error)
-	GetAllAchievements() ([]models.Achievement, error)
 
 	// EnsureUserAvatarColumn добавляет avatar_data, если колонки ещё нет (когда не запускали migrate).
 	EnsureUserAvatarColumn(context.Context) error
@@ -297,31 +294,6 @@ func (pr PsqlRepo) GetCompletedLessonsForUser(userID int) ([]string, error) {
 	return titles, err
 }
 
-func (pr PsqlRepo) GetCompletedAchievementsForUser(userID int) ([]models.Achievement, error) {
-	var achievements []models.Achievement
-	err := pgxscan.Select(context.Background(),
-		pr.dbPool,
-		&achievements, `SELECT a.id, a.title, a.description, a.icon_data
-		 FROM achievements_completed ac
-		 JOIN achievements a ON ac.achievement_id = a.id
-		 WHERE ac.user_id = $1
-		 ORDER BY a.id`, userID)
-	if err != nil {
-		return nil, err
-	}
-	return achievements, err
-}
-
-func (pr PsqlRepo) GetAllAchievements() ([]models.Achievement, error) {
-	var achievements []models.Achievement
-	err := pgxscan.Select(context.Background(),
-		pr.dbPool,
-		&achievements, `SELECT a.id, a.title, a.description, a.icon_data FROM achievements a`)
-	if err != nil {
-		return nil, err
-	}
-	return achievements, err
-}
 func (pr PsqlRepo) GetUserByID(userID int) (models.User, error) {
 	var user models.User
 	err := pr.dbPool.QueryRow(
@@ -342,6 +314,7 @@ func (pr PsqlRepo) GetUserByID(userID int) (models.User, error) {
 	}
 	return user, nil
 }
+
 func (pr PsqlRepo) AddXPToUser(userID int, xp int) error {
 	tx, err := pr.dbPool.Begin(context.Background())
 	if err != nil {

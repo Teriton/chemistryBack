@@ -242,3 +242,34 @@ func (uh *UserHandler) SetAvatar(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
+
+func (uh *UserHandler) GetAchievements(w http.ResponseWriter, r *http.Request) {
+	log.Printf("[INFO] /user/achievements")
+	w.Header().Set("Content-Type", "application/json")
+	cookies := r.CookiesNamed("token")
+
+	var err error
+	if len(cookies) < 1 {
+		err = errors.New("cookie is not set")
+	}
+	if checkError(w, err, http.StatusForbidden) {
+		return
+	}
+
+	jwtToken := cookies[0].Value
+	jwtContent, err := uh.authMngr.VerifyToken(jwtToken)
+	if checkError(w, err, http.StatusForbidden) {
+		return
+	}
+	user, err := uh.dbRepo.GetUserByUserName(jwtContent.Username)
+	if checkError(w, err, http.StatusForbidden) {
+		return
+	}
+	completedAchievements, err := uh.dbRepo.GetCompletedAchievementsForUser(user.ID)
+	if checkError(w, err, http.StatusForbidden) {
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+	json.NewEncoder(w).Encode(completedAchievements)
+}

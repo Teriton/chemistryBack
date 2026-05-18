@@ -77,7 +77,32 @@ func (h *ArticlesHandler) LessonsCompleted(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusAccepted)
 	w.Write(jsonData)
 }
+func (h *ArticlesHandler) GetAchievements(w http.ResponseWriter, r *http.Request) {
+	log.Printf("[INFO] /achievements")
+	w.Header().Set("Content-Type", "application/json")
+	cookies := r.CookiesNamed("token")
 
+	var err error
+	if len(cookies) < 1 {
+		err = errors.New("cookie is not set")
+	}
+	if checkError(w, err, http.StatusForbidden) {
+		return
+	}
+
+	jwtToken := cookies[0].Value
+	_, err = h.authMngr.VerifyToken(jwtToken)
+	if checkError(w, err, http.StatusForbidden) {
+		return
+	}
+	achievements, err := h.dbRepo.GetAllAchievements()
+	if checkError(w, err, http.StatusForbidden) {
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+	json.NewEncoder(w).Encode(achievements)
+}
 func (h *ArticlesHandler) GetArticle(w http.ResponseWriter, r *http.Request) {
 	pathToArticle := r.PathValue("path")
 	article, err := h.articleReader.GetArticle(pathToArticle)

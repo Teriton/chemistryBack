@@ -49,6 +49,7 @@ func NewApp(
 	mux.HandleFunc("GET /articles/list", articleHandler.ListArticles)
 	mux.HandleFunc("GET /articles/byPath/{path...}", articleHandler.GetArticle)
 	mux.HandleFunc("GET /articles/lessonsCompleted", articleHandler.LessonsCompleted)
+	mux.HandleFunc("GET /achievements", articleHandler.GetAchievements)
 
 	mux.HandleFunc("POST /login", authHandler.Login)
 	mux.HandleFunc("POST /signup", authHandler.Signup)
@@ -59,6 +60,7 @@ func NewApp(
 	mux.HandleFunc("POST /user/edit", userHandler.EditUserInfo)
 	mux.HandleFunc("POST /user/practice-xp", userHandler.AddPracticeXP)
 	mux.HandleFunc("POST /user/avatar", userHandler.SetAvatar)
+	mux.HandleFunc("GET /user/achievements", userHandler.GetAchievements)
 
 	mux.HandleFunc("POST /complete", questionHandler.CompleteArticle)
 
